@@ -17,19 +17,17 @@ public class ProcessCaller {
 	@SneakyThrows
 	public static int exec(String cmd) {
 
-		System.out.println("command : " + cmd);
-
 		Process process = null;
-
-		Arrays.stream(cmd.split("[ ]")).forEach(s -> {
-			System.out.println(s);
-		});
 
 		process = Runtime.getRuntime().exec(cmd.split("[ ]"));
 
-		process.waitFor();
-
 		int er = -1;
+
+		try (InputStream is = process.getInputStream()) {
+			while ((er = is.read()) != -1) {
+				System.out.write(er);
+			}
+		}
 
 		try (InputStream eis = process.getErrorStream()) {
 			while ((er = eis.read()) != -1) {
@@ -37,11 +35,7 @@ public class ProcessCaller {
 			}
 		}
 
-		try (InputStream is = process.getInputStream()) {
-			while ((er = is.read()) != -1) {
-				System.out.write(er);
-			}
-		}
+		process.waitFor();
 
 		return process.exitValue();
 
